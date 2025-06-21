@@ -37,7 +37,7 @@ async def query_model(message_content, model_name):
 
 @bot.event
 async def on_ready():
-    print(f"{bot.user} is online and debugging TypeScript in hell.")
+    print(f"{bot.user} is online")
 
 @bot.command(name="ask")
 async def ask(ctx, *, prompt: str):
