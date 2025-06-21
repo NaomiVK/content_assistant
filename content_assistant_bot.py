@@ -1,7 +1,6 @@
 import discord
-from discord.ext import commands
-import os
 import aiohttp
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -9,13 +8,13 @@ load_dotenv()
 DISCORD_TOKEN = os.getenv("CONTENT_ASSISTANT_BOT_TOKEN")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
-
 PRIMARY_MODEL = "qwen/qwen3-30b-a3b-04-28:free"
 FALLBACK_MODEL = "deepseek/deepseek-r1-0528:free"
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+intents = discord.Intents.default()
+intents.message_content = True
+bot = discord.Bot(intents=intents)
 
 async def query_model(message_content, model_name):
     headers = {
@@ -37,21 +36,17 @@ async def query_model(message_content, model_name):
 
 @bot.event
 async def on_ready():
-    print(f"{bot.user} is online")
+    print(f"{bot.user} reporting for nerd duty.")
 
-@bot.command(name="ask")
-async def ask(ctx, *, prompt: str):
-    await ctx.trigger_typing()
-    print(f"🧠 Question received: {prompt}")
+@bot.slash_command(name="askcode", description="Ask coding questions about Angular, TypeScript, GitHub, etc.")
+async def askcode(ctx: discord.ApplicationContext, question: str):
+    await ctx.defer()
+    print(f"🧠 Slash command received: {question}")
 
-    # Try primary model
-    reply = await query_model(prompt, PRIMARY_MODEL)
-
-    # Fallback if needed
+    reply = await query_model(question, PRIMARY_MODEL)
     if reply is None:
-        print("❌ Primary model failed. Using fallback.")
-        reply = await query_model(prompt, FALLBACK_MODEL)
+        reply = await query_model(question, FALLBACK_MODEL)
 
-    await ctx.reply(reply or "Both models failed. Time to cry into your console.")
+    await ctx.respond(reply or "Both models failed. The AI gods are displeased.")
 
 bot.run(DISCORD_TOKEN)
